@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nextcloud-config
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: nextcloud
+data:
+{{- range $key, $value := .Values.nextcloud.config }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}

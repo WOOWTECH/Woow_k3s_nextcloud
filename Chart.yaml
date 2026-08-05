@@ -1,0 +1,23 @@
+apiVersion: v2
+name: nextcloud
+description: >-
+  Nextcloud on K3s/Kubernetes with PostgreSQL 16 (pgvector), Redis cache and
+  a dedicated cron worker for background jobs.
+type: application
+version: 1.0.0
+appVersion: "stable"
+kubeVersion: ">=1.24.0-0"
+keywords:
+  - nextcloud
+  - postgres
+  - pgvector
+  - redis
+  - self-hosted
+home: https://github.com/WOOWTECH/Woow_k3s_nextcloud
+sources:
+  - https://github.com/WOOWTECH/Woow_k3s_nextcloud
+  - https://github.com/nextcloud/docker
+  - https://github.com/pgvector/pgvector
+maintainers:
+  - name: WoowTech
+    url: https://github.com/WOOWTECH

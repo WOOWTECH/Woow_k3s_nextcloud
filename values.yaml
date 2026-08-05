@@ -1,0 +1,131 @@
+# Default values for the nextcloud chart.
+# Defaults reproduce the original Kustomize deployment 1:1
+# (namespace nextcloud, NodePort 31808, local-path storage,
+# PostgreSQL 16 + pgvector, Redis cache, cron worker).
+
+namespace:
+  # Create the target namespace as part of the release.
+  # Set to false if the namespace is managed elsewhere.
+  create: true
+  name: nextcloud
+
+nextcloud:
+  image:
+    repository: nextcloud
+    tag: stable
+    # "Always" matches the original manifests' behaviour with the
+    # :stable tag (no explicit pullPolicy was set upstream, so
+    # Kubernetes defaulted to Always for non-pinned tags like :stable).
+    pullPolicy: Always
+
+  # Exposed to the container via a ConfigMap (envFrom).
+  config:
+    POSTGRES_DB: "nextcloud"
+    POSTGRES_USER: "nextcloud"
+    POSTGRES_HOST: "db"
+    REDIS_HOST: "redis"
+    REDIS_HOST_PORT: "6379"
+    OVERWRITEPROTOCOL: "https"
+    NEXTCLOUD_TRUSTED_DOMAINS: "nextcloud.local"
+    PHP_MEMORY_LIMIT: "512M"
+    PHP_UPLOAD_LIMIT: "16G"
+
+  service:
+    type: NodePort
+    port: 80
+    # Only used when type is NodePort.
+    nodePort: 31808
+
+  persistence:
+    # PVC for Nextcloud application files (/var/www/html).
+    html:
+      storageClassName: local-path
+      size: 5Gi
+    # PVC for Nextcloud user data (/var/www/html/data).
+    data:
+      storageClassName: local-path
+      size: 50Gi
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
+db:
+  image:
+    repository: pgvector/pgvector
+    tag: pg16
+    # pg16 is a mutable tag upstream; keep original implicit behaviour
+    # (Always) explicit so pulls track updates as before.
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 5432
+
+  persistence:
+    # PVC for PostgreSQL data directory.
+    storageClassName: local-path
+    size: 10Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+redis:
+  image:
+    repository: redis
+    tag: alpine
+    # "Always" matches the original manifests' behaviour with the
+    # :alpine tag (Kubernetes defaults to Always for mutable tags).
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 6379
+
+  persistence:
+    # PVC for Redis AOF persistence (/data).
+    storageClassName: local-path
+    size: 1Gi
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+cron:
+  # Deploy the Nextcloud cron worker (background jobs).
+  enabled: true
+
+  image:
+    repository: nextcloud
+    tag: stable
+    # See nextcloud.image.pullPolicy note above.
+    pullPolicy: Always
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+secrets:
+  # -- PostgreSQL password (change before deploying)
+  postgresPassword: "changeme-postgres-password"
+  # -- Nextcloud admin account username
+  nextcloudAdminUser: "admin"
+  # -- Nextcloud admin account password (change before deploying)
+  nextcloudAdminPassword: "changeme-admin-password"

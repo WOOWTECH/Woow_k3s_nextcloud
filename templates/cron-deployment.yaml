@@ -1,8 +1,10 @@
+{{- if .Values.cron.enabled }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cron
-  namespace: nextcloud
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: nextcloud
     component: cron
@@ -22,7 +24,8 @@ spec:
     spec:
       containers:
         - name: cron
-          image: nextcloud:stable
+          image: "{{ .Values.cron.image.repository }}:{{ .Values.cron.image.tag }}"
+          imagePullPolicy: {{ .Values.cron.image.pullPolicy }}
           command:
             - /cron.sh
           envFrom:
@@ -36,12 +39,7 @@ spec:
             - name: nextcloud-data
               mountPath: /var/www/html/data
           resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
+            {{- toYaml .Values.cron.resources | nindent 12 }}
       volumes:
         - name: nextcloud-html
           persistentVolumeClaim:
@@ -49,3 +47,4 @@ spec:
         - name: nextcloud-data
           persistentVolumeClaim:
             claimName: nextcloud-data
+{{- end }}

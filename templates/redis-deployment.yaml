@@ -1,8 +1,9 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
-  namespace: nextcloud
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: nextcloud
     component: redis
@@ -22,7 +23,8 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:alpine
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
           command:
             - redis-server
             - --appendonly
@@ -52,12 +54,7 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 500m
-              memory: 256Mi
+            {{- toYaml .Values.redis.resources | nindent 12 }}
       volumes:
         - name: redis-data
           persistentVolumeClaim:

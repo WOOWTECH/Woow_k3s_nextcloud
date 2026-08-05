@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: nextcloud
+    component: app
+spec:
+  type: {{ .Values.nextcloud.service.type }}
+  ports:
+    - port: {{ .Values.nextcloud.service.port }}
+      targetPort: 80
+      {{- if eq .Values.nextcloud.service.type "NodePort" }}
+      nodePort: {{ .Values.nextcloud.service.nodePort }}
+      {{- end }}
+      protocol: TCP
+      name: http
+  selector:
+    app: nextcloud
+    component: app

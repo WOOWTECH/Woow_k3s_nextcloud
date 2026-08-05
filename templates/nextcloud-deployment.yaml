@@ -1,8 +1,9 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nextcloud
-  namespace: nextcloud
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: nextcloud
     component: app
@@ -22,7 +23,8 @@ spec:
     spec:
       containers:
         - name: nextcloud
-          image: nextcloud:stable
+          image: "{{ .Values.nextcloud.image.repository }}:{{ .Values.nextcloud.image.tag }}"
+          imagePullPolicy: {{ .Values.nextcloud.image.pullPolicy }}
           ports:
             - containerPort: 80
               protocol: TCP
@@ -70,12 +72,7 @@ spec:
             timeoutSeconds: 10
             failureThreshold: 30
           resources:
-            requests:
-              cpu: 200m
-              memory: 256Mi
-            limits:
-              cpu: "2"
-              memory: 2Gi
+            {{- toYaml .Values.nextcloud.resources | nindent 12 }}
       volumes:
         - name: nextcloud-html
           persistentVolumeClaim:

@@ -1,8 +1,9 @@
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: db
-  namespace: nextcloud
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: nextcloud
     component: db
@@ -21,7 +22,8 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: pgvector/pgvector:pg16
+          image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+          imagePullPolicy: {{ .Values.db.image.pullPolicy }}
           ports:
             - containerPort: 5432
               protocol: TCP
@@ -59,12 +61,7 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
+            {{- toYaml .Values.db.resources | nindent 12 }}
       volumes:
         - name: postgres-data
           persistentVolumeClaim:

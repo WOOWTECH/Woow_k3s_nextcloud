@@ -1,0 +1,68 @@
+---
+# PVC for PostgreSQL data directory
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: nextcloud
+    component: db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.db.persistence.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.db.persistence.size }}
+---
+# PVC for Redis AOF persistence
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: nextcloud
+    component: redis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.redis.persistence.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.persistence.size }}
+---
+# PVC for Nextcloud application files (/var/www/html)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nextcloud-html
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: nextcloud
+    component: app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.nextcloud.persistence.html.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.nextcloud.persistence.html.size }}
+---
+# PVC for Nextcloud user data (/var/www/html/data)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nextcloud-data
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: nextcloud
+    component: app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.nextcloud.persistence.data.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.nextcloud.persistence.data.size }}
