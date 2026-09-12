@@ -1,0 +1,64 @@
+{{- /*
+`helm test` smoke pod, read-only:
+  - status: GET /status.php on the nextcloud Service reports installed=true
+  - db-tables: psql against the db Service confirms Nextcloud's oc_* tables exist
+*/ -}}
+{{- if .Values.tests.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .Release.Name }}-smoke
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: nextcloud
+    app.kubernetes.io/component: smoke-test
+  annotations:
+    helm.sh/hook: test
+    # Kept until the next `helm test` so `helm test --logs` can always read it.
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  restartPolicy: Never
+  containers:
+    - name: status
+      image: docker.io/curlimages/curl:8.11.1
+      command: [sh, -c]
+      args:
+        - |
+          set -eu
+          body="$(curl -fsS -H 'Host: localhost' http://nextcloud/status.php)"
+          echo "$body"
+          case "$body" in
+            *'"installed":true'*) echo "status.php: installed" ;;
+            *) echo "status.php did not report installed=true"; exit 1 ;;
+          esac
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 250m
+          memory: 128Mi
+    - name: db-tables
+      image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+      env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-secret
+              key: POSTGRES_PASSWORD
+      command: [sh, -c]
+      args:
+        - |
+          set -eu
+          n="$(psql -h db -U nextcloud -d nextcloud -tAc \
+            "SELECT count(*) FROM information_schema.tables WHERE table_name LIKE 'oc_%'")"
+          echo "oc_* tables: $n"
+          [ "$n" -gt 0 ]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 250m
+          memory: 128Mi
+{{- end }}
