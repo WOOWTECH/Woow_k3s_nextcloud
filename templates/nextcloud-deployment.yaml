@@ -21,6 +21,26 @@ spec:
         app: nextcloud
         component: app
     spec:
+      # www-data in the nextcloud image is uid/gid 33. Freshly provisioned
+      # PVCs on stricter CSI drivers (e.g. Longhorn) mount with a root-owned,
+      # non-writable root directory; fsGroup makes it group-writable so the
+      # container's entrypoint can create/write to nextcloud-html and
+      # nextcloud-data. No-op on providers (e.g. local-path) that already
+      # hand back a world-writable mount.
+      securityContext:
+        fsGroup: 33
+      initContainers:
+        # fsGroup only chgrps the freshly provisioned volume; it does not
+        # strip the "other" read/execute bit some CSI drivers leave on the
+        # mount root. Nextcloud refuses to serve any page ("Your data
+        # directory is readable by other people") until that directory is
+        # 0770 or stricter, so clear it once before the app container starts.
+        - name: fix-data-perms
+          image: "{{ .Values.nextcloud.image.repository }}:{{ .Values.nextcloud.image.tag }}"
+          command: [sh, -c, "chmod 0770 /var/www/html/data"]
+          volumeMounts:
+            - name: nextcloud-data
+              mountPath: /var/www/html/data
       containers:
         - name: nextcloud
           image: "{{ .Values.nextcloud.image.repository }}:{{ .Values.nextcloud.image.tag }}"

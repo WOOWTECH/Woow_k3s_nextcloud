@@ -6,8 +6,16 @@
 namespace:
   # Create the target namespace as part of the release.
   # Set to false if the namespace is managed elsewhere.
+  # A namespace equal to the release namespace (`-n`) is never rendered,
+  # since Helm keeps its release record there - create that one with
+  # `--create-namespace` instead so `helm uninstall` can never delete it.
   create: true
   name: nextcloud
+
+# Add `helm.sh/resource-policy: keep` to the Namespace, every PVC and the
+# chart-created Secret, so `helm uninstall` never deletes Nextcloud data,
+# the PostgreSQL database or the admin/DB passwords.
+keepOnUninstall: true
 
 nextcloud:
   image:
@@ -123,9 +131,21 @@ cron:
       memory: 1Gi
 
 secrets:
-  # -- PostgreSQL password (change before deploying)
-  postgresPassword: "changeme-postgres-password"
+  # false (default): the Secret "nextcloud-secret" already exists (created
+  #   out of band from examples/secrets.example.yaml) and the chart never
+  #   renders it, so a `helm upgrade` can never overwrite a real password
+  #   with an empty one.
+  # true: render the Secret from the values below (fresh installs, tests).
+  #   postgresPassword and nextcloudAdminPassword are then required() and
+  #   fail the render with a clear message if left blank.
+  create: false
+  # -- PostgreSQL password
+  postgresPassword: ""
   # -- Nextcloud admin account username
   nextcloudAdminUser: "admin"
-  # -- Nextcloud admin account password (change before deploying)
-  nextcloudAdminPassword: "changeme-admin-password"
+  # -- Nextcloud admin account password
+  nextcloudAdminPassword: ""
+
+tests:
+  # `helm test` smoke pod: status.php reports installed, DB tables exist. Read-only.
+  enabled: true
