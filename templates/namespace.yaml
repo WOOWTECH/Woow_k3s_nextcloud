@@ -3,12 +3,12 @@ A namespace equal to the release namespace is skipped: Helm keeps its
 release record there, so it is created with --create-namespace instead and
 can never be deleted by `helm uninstall`.
 */ -}}
-{{- if and .Values.namespace.create (ne .Values.namespace.name .Release.Namespace) }}
+{{- if and .Values.namespace.create (ne (include "nextcloud.ns" .) .Release.Namespace) }}
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ .Values.namespace.name }}
+  name: {{ include "nextcloud.ns" . }}
   labels:
     app: nextcloud
     managed-by: helm

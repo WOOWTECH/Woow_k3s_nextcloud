@@ -10,7 +10,10 @@ namespace:
   # since Helm keeps its release record there - create that one with
   # `--create-namespace` instead so `helm uninstall` can never delete it.
   create: true
-  name: nextcloud
+  # EMPTY BY DEFAULT so `-n` controls placement. A non-empty value here
+  # silently overrides `-n`, which is how a rehearsal once wrote Helm
+  # ownership annotations onto a live production Deployment.
+  name: ""
 
 # Add `helm.sh/resource-policy: keep` to the Namespace, every PVC and the
 # chart-created Secret, so `helm uninstall` never deletes Nextcloud data,

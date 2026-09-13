@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cron
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ include "nextcloud.ns" . }}
   labels:
     app: nextcloud
     component: cron
