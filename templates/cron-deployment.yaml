@@ -1,4 +1,13 @@
-{{- if .Values.cron.enabled }}
+{{- /*
+Separate cron Deployment. Rendered only when cron.mode=deployment.
+
+nextcloud-html and nextcloud-data are ReadWriteOnce and are mounted by BOTH
+this pod and the nextcloud pod. On a single-node cluster they always co-locate
+so it works; on a multi-node cluster they land on different nodes and every pod
+hangs forever on a Multi-Attach error. Use this mode ONLY when those volumes are
+ReadWriteMany. cron.mode=sidecar (the default) has no such requirement.
+*/ -}}
+{{- if and .Values.cron.enabled (eq .Values.cron.mode "deployment") }}
 ---
 apiVersion: apps/v1
 kind: Deployment

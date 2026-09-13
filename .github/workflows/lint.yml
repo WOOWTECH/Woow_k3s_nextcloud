@@ -48,6 +48,10 @@ jobs:
             # the namespace it lives in). Render it explicitly, or the "every template
             # renders" guard below fails on templates/namespace.yaml.
             helm template nextcloud . -n release-ns --set namespace.create=true --set namespace.name=nextcloud-elsewhere  > /tmp/r/other-ns.yaml
+            # cron.mode defaults to sidecar, so templates/cron-deployment.yaml is
+            # correctly skipped by every combination above. Render the other mode too,
+            # or the "every template renders" guard below fails on it.
+            helm template nextcloud . -n nextcloud --set "$SECRETS" --set cron.mode=deployment > /tmp/r/cron-deployment-mode.yaml
           wc -l /tmp/r/*.yaml
 
       - name: Every template is tracked and renders

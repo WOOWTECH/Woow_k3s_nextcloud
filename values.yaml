@@ -118,6 +118,16 @@ redis:
 cron:
   # Deploy the Nextcloud cron worker (background jobs).
   enabled: true
+  # sidecar    - run /cron.sh as a second container INSIDE the nextcloud pod.
+  #              Default, and the only mode that works on a multi-node cluster
+  #              while nextcloud-html/nextcloud-data are ReadWriteOnce: both
+  #              containers share one pod, so each volume is attached once.
+  # deployment - the historical separate Deployment. It mounts the SAME two RWO
+  #              PVCs as the nextcloud pod, so the scheduler can place them on
+  #              different nodes and every pod then hangs forever on a
+  #              Multi-Attach error. Only safe once those PVCs are
+  #              ReadWriteMany (Longhorn RWX needs nfs-common on every node).
+  mode: sidecar
 
   image:
     repository: nextcloud
