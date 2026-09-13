@@ -4,7 +4,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-data
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ include "nextcloud.ns" . }}
   labels:
     app: nextcloud
     component: db
@@ -22,7 +22,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: redis-data
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ include "nextcloud.ns" . }}
   labels:
     app: nextcloud
     component: redis
@@ -40,7 +40,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nextcloud-html
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ include "nextcloud.ns" . }}
   labels:
     app: nextcloud
     component: app
@@ -58,7 +58,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nextcloud-data
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ include "nextcloud.ns" . }}
   labels:
     app: nextcloud
     component: app

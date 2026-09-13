@@ -8,7 +8,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: {{ .Release.Name }}-smoke
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ include "nextcloud.ns" . }}
   labels:
     app: nextcloud
     app.kubernetes.io/component: smoke-test
