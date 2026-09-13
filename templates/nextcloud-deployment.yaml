@@ -93,6 +93,25 @@ spec:
             failureThreshold: 30
           resources:
             {{- toYaml .Values.nextcloud.resources | nindent 12 }}
+{{- if and .Values.cron.enabled (eq .Values.cron.mode "sidecar") }}
+        - name: cron
+          image: "{{ .Values.cron.image.repository }}:{{ .Values.cron.image.tag }}"
+          imagePullPolicy: {{ .Values.cron.image.pullPolicy }}
+          command:
+            - /cron.sh
+          envFrom:
+            - configMapRef:
+                name: nextcloud-config
+            - secretRef:
+                name: nextcloud-secret
+          volumeMounts:
+            - name: nextcloud-html
+              mountPath: /var/www/html
+            - name: nextcloud-data
+              mountPath: /var/www/html/data
+          resources:
+            {{- toYaml .Values.cron.resources | nindent 12 }}
+{{- end }}
       volumes:
         - name: nextcloud-html
           persistentVolumeClaim:
